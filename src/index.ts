@@ -1,12 +1,11 @@
 /* 
-Brainstorm: 
-maybe place down a queen anywhere on the board first
-then place down another queen somewhere that doesn't attack first queen
-(the nice thing is that theyre bidirectional so if one queen cant attack 
-another, the other cant attack that one)
+Idea: 
+place a queen at one position in the first row
+generate all the possible acceptable queen positions for the second row <-- this may be a bottleneck
+recurse with those new queen positions on the new row
+- if the row is the last row, add that to the answer
 
-
-
+basically generate a tree of possible board combinations where queens do not attack each other
 */
 
 const deepClone: (arr: string[][]) => string[][] = (arr) => JSON.parse(JSON.stringify(arr));
