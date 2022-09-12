@@ -6,6 +6,9 @@ recurse with those new queen positions on the new row
 - if the row is the last row, add that to the answer
 
 basically generate a tree of possible board combinations where queens do not attack each other
+
+  optimization: since all grids have a reflection over the middle line, 
+  we could calculate half of it, then reflect the other half
 */
 
 const deepClone: (arr: string[][]) => string[][] = (arr) => JSON.parse(JSON.stringify(arr));
@@ -13,18 +16,29 @@ const deepClone: (arr: string[][]) => string[][] = (arr) => JSON.parse(JSON.stri
 const flatten: (arr: string[][]) => string[] = (arr) => {
   const a: string[] = [];
   for (let i = 0; i < arr.length; i++) {
+    a.push('');
     for (let j = 0; j < arr[i].length; j++) {
-      a.push(arr[i][j]);
+      a[i] += arr[i][j];
     }
   }
   return a;
 };
 
 function solveNQueens(n: number): string[][] {
-  return _solveNQueens(n).map((e) => flatten(removeLimits(e)));
+  const half = _solveHalfNQueens(n).map((e) => flatten(removeLimits(e)));
+  const otherHalf = (
+    n % 2 === 0
+      ? half
+      : half.slice(
+          0,
+          half.findIndex((e) => e[0].startsWith(`${'.'.repeat(Math.floor(n / 2))}Q`))
+        )
+  ).map((e) => e.map((a) => a.split('').reverse().join('')));
+
+  return [...half, ...otherHalf];
 }
 
-function _solveNQueens(
+function _solveHalfNQueens(
   n: number,
   row: number = 0,
   board: string[][] = createMap(n),
@@ -39,7 +53,9 @@ function _solveNQueens(
     return b;
   }, []);
 
-  for (const col of allowedCols) _solveNQueens(n, row + 1, placeQueen(col, row, deepClone(board)), answerStore);
+  for (let i = 0; i < Math.ceil(row === 0 ? allowedCols.length / 2 : allowedCols.length); i++) {
+    _solveHalfNQueens(n, row + 1, placeQueen(allowedCols[i], row, deepClone(board)), answerStore);
+  }
 
   return answerStore;
 }
@@ -91,6 +107,14 @@ function removeLimits(map: string[][]) {
   return map;
 }
 
-const n = solveNQueens(8);
+const n = solveNQueens(5);
+
+console.log(n);
 
 console.log(n.length);
+
+/*
+
+
+[["Q....","..Q..","....Q",".Q...","...Q."],["Q....","...Q.",".Q...","....Q","..Q.."],[".Q...","...Q.","Q....","..Q..","....Q"],[".Q...","....Q","..Q..","Q....","...Q."],["..Q..","Q....","...Q.",".Q...","....Q"],["..Q..","....Q",".Q...","...Q.","Q...."],["...Q.","Q....","..Q..","....Q",".Q..."],["...Q.",".Q...","....Q","..Q..","Q...."],["....Q",".Q...","...Q.","Q....","..Q.."],["....Q","..Q..","Q....","...Q.",".Q..."]]
+*/
